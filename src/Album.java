@@ -44,6 +44,10 @@ public class Album {
         this.runtime = runtime;
     }
 
+    public Album() {
+
+    }
+
     // Getters
     public int getId() {
         return id;

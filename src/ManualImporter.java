@@ -9,6 +9,9 @@ import java.util.Scanner;
 import java.util.List;
 
 public class ManualImporter {
+
+    private static Scanner scanner = new Scanner(System.in);
+
     // Name: run
     // Description: This method is used to create a submenu where the user can manually enter the data for an album that they'd like to import into the db
     // Inputs:
@@ -16,7 +19,7 @@ public class ManualImporter {
         // List<Album> albums: The list of albums that is passed through for processing
     // Outputs:
         // List<Album>: The updated list of albums after the album(s) have been imported.
-    public static List<Album> run(Scanner scanner, List<Album> albums) {
+    public static void run() {
         while (true) {
             int id;
             String name;
@@ -37,7 +40,7 @@ public class ManualImporter {
                     continue;
                 } else if (input.equals("exit")) {
                     // Return album list ("internal db") to previous context
-                    return albums;
+                    return;
                 }
 
                 // Parse integer
@@ -55,7 +58,7 @@ public class ManualImporter {
                 }
 
                 // Verify that the ID is not currently used
-                if (Main.isAlbumIdUsed(albums, id)) {
+                if (Main.isAlbumIdUsed(id)) {
                     System.out.println("A album with the ID [" + id + "] already exists!");
                     continue;
                 }
@@ -71,7 +74,7 @@ public class ManualImporter {
                 if (input.isEmpty()) {
 
                 } else if (input.equals("exit")) {
-                    return albums;
+                    return;
                 } else {
                     name = input;
                     break;
@@ -86,7 +89,7 @@ public class ManualImporter {
                 if (input.isEmpty()) {
 
                 } else if (input.equals("exit")) {
-                    return albums;
+                    return;
                 } else {
                     artistName = input;
                     break;
@@ -102,7 +105,7 @@ public class ManualImporter {
                     // Restart loop if input is null/whitespace
                     continue;
                 } else if (input.equals("exit")) {
-                    return albums;
+                    return;
                 }
 
                 genre = input;
@@ -118,7 +121,7 @@ public class ManualImporter {
                     // Restart loop if input is null/whitespace
                     continue;
                 } else if (input.equals("exit")) {
-                    return albums;
+                    return;
                 }
 
                 // Parse integer
@@ -146,7 +149,7 @@ public class ManualImporter {
                     // Restart loop if input is null/whitespace
                     continue;
                 } else if (input.equals("exit")) {
-                    return albums;
+                    return;
                 }
 
                 // Parse integer
@@ -174,7 +177,7 @@ public class ManualImporter {
                     // Restart loop if input is null/whitespace
                     continue;
                 } else if (input.equals("exit")) {
-                    return albums;
+                    return;
                 }
 
                 // Parse integer
@@ -201,7 +204,7 @@ public class ManualImporter {
             }
 
             // Add album object to internal db
-            albums.add(album);
+            Main.addAlbumToDB(album);
         }
     }
 }

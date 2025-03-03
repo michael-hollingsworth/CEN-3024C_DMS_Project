@@ -9,6 +9,9 @@ import java.util.Scanner;
 import java.util.List;
 
 public class UpdateAlbum {
+
+    private static Scanner scanner = new Scanner(System.in);
+
     // Name: run
     // Description: This method is used to create a submenu where the user can manually edit the data for an album that is already in the db
     // Inputs:
@@ -16,17 +19,14 @@ public class UpdateAlbum {
         // List<Album> albums: The list of albums that is passed through for processing
     // Outputs:
         // List<Album>: The updated list of albums after the album(s) have been modified.
-    public static List<Album> run(Scanner scanner, List<Album> albums) {
+    public static void run() {
         while (true) {
             int idToModify;
-            int index = -1;
             String input;
             int choiceInt;
 
             // Options
-            for (Album album : albums) {
-                System.out.println(album.toString());
-            }
+            Main.printAlbums();
             System.out.println();
             System.out.println("Enter the ID of the album you want to edit or [exit] to exit:");
 
@@ -35,7 +35,7 @@ public class UpdateAlbum {
                 // Restart loop if the input is blank
                 continue;
             } else if (input.equals("exit")) {
-                return albums;
+                return;
             }
 
             // Parse integer
@@ -51,29 +51,12 @@ public class UpdateAlbum {
                 continue;
             }
 
-            // Identify which album has been selected
-            for (Album album : albums) {
-                if (album.id == idToModify) {
-                    System.out.println("Modifying album [" + album.toString() + "].");
-                    // albums.remove(album);
-                    index = albums.indexOf(album);
-
-                }
-            }
-
-            // We are modifying this album
-            Album albumToModify = albums.get(index);
-
             // Loop for editing properties of selected album
             editLoop: while (true) {
-                int id;
-                String name;
-                String artistName;
-                String genre;
                 int userRating;
                 int trackCount;
                 int runtime;
-                Album album;
+                String newValue;
 
                 System.out.println("Enter the number for the option you would like to edit:");
                 System.out.println("0: Exit");
@@ -99,6 +82,7 @@ public class UpdateAlbum {
                     System.out.println("Invalid input! Please enter an integer.\n");
                     continue;
                 }
+
                 switch (choiceInt) {
                     case 0:
                         // Exit loop
@@ -108,34 +92,25 @@ public class UpdateAlbum {
                         while (true) {
                             System.out.println("Enter album ID or [exit] to exit:");
 
-                            input = scanner.nextLine().trim();
-                            if (input.isEmpty()) {
+                            newValue = scanner.nextLine().trim();
+                            if (newValue.isEmpty()) {
                                 // Restart loop if input is null/whitespace
                                 continue;
-                            } else if (input.equals("exit")) {
+                            } else if (newValue.equals("exit")) {
                                 break;
                             }
 
+                            System.out.println("Album ID: " + idToModify);
+                            System.out.println("new val: " + newValue);
+
+                            // Try to update the album ID
                             try {
-                                id = Integer.parseInt(input);
-                            } catch (NumberFormatException e) {
-                                System.out.println("Invalid album ID! Album ID must be a positive integer.");
+                                Main.updateAlbum(idToModify, Main.AlbumProperty.id, newValue);
+                            } catch (Exception e) {
+                                System.out.println(e.getMessage());
                                 continue;
                             }
 
-                            // Verify that the album ID is valid
-                            if (id < 0) {
-                                System.out.println("Invalid album ID! Album ID must be a positive integer.");
-                                continue;
-                            }
-
-                            // Verify that album id isn't already being used
-                            if (Main.isAlbumIdUsed(albums, id)) {
-                                System.out.println("A album with the ID [" + id + "] already exists!");
-                                continue;
-                            }
-
-                            albumToModify.setId(id);
                             break;
                         }
                         break;
@@ -144,17 +119,21 @@ public class UpdateAlbum {
                         while (true) {
                             System.out.println("Enter album name or 'exit' to exit:");
 
-                            input = scanner.nextLine().trim();
-                            if (input.isEmpty()) {
+                            newValue = scanner.nextLine().trim();
+                            if (newValue.isEmpty()) {
                                 // Restart loop if input is null/whitespace
                                 continue;
-                            } else if (input.equals("exit")) {
+                            } else if (newValue.equals("exit")) {
                                 break;
-                            } else {
-                                name = input;
                             }
 
-                            albumToModify.setName(name);
+                            // Try to Update the property
+                            try {
+                                Main.updateAlbum(idToModify, Main.AlbumProperty.id, newValue);
+                            } catch (Exception e) {
+                                System.out.println(e.getMessage());
+                                continue;
+                            }
                             break;
                         }
                         break;
@@ -163,17 +142,21 @@ public class UpdateAlbum {
                         while (true) {
                             System.out.println("Enter artist name or 'exit' to exit:");
 
-                            input = scanner.nextLine().trim();
-                            if (input.isEmpty()) {
+                            newValue = scanner.nextLine().trim();
+                            if (newValue.isEmpty()) {
                                 // Restart loop if input is null/whitespace
                                 continue;
-                            } else if (input.equals("exit")) {
+                            } else if (newValue.equals("exit")) {
                                 break;
-                            } else {
-                                artistName = input;
                             }
 
-                            albumToModify.setArtistName(artistName);
+                            // Try to Update the property
+                            try {
+                                Main.updateAlbum(idToModify, Main.AlbumProperty.id, newValue);
+                            } catch (Exception e) {
+                                System.out.println(e.getMessage());
+                                continue;
+                            }
                             break;
                         }
                         break;
@@ -182,17 +165,22 @@ public class UpdateAlbum {
                         while (true) {
                             System.out.println("Enter album genre or 'exit' to exit:");
 
-                            input = scanner.nextLine().trim();
-                            if (input.isEmpty()) {
+                            newValue = scanner.nextLine().trim();
+                            if (newValue.isEmpty()) {
                                 // Restart loop if input is null/whitespace
                                 continue;
-                            } else if (input.equals("exit")) {
+                            } else if (newValue.equals("exit")) {
                                 break;
-                            } else {
-                                artistName = input;
                             }
 
-                            albumToModify.setArtistName(artistName);
+
+                            // Try to Update the property
+                            try {
+                                Main.updateAlbum(idToModify, Main.AlbumProperty.id, newValue);
+                            } catch (Exception e) {
+                                System.out.println(e.getMessage());
+                                continue;
+                            }
                             break;
                         }
                         break;
@@ -201,28 +189,21 @@ public class UpdateAlbum {
                         while (true) {
                             System.out.println("Enter album rating or 'exit' to exit:");
 
-                            input = scanner.nextLine().trim();
-                            if (input.isEmpty()) {
+                            newValue = scanner.nextLine().trim();
+                            if (newValue.isEmpty()) {
                                 // Restart loop if input is null/whitespace
                                 continue;
-                            } else if (input.equals("exit")) {
+                            } else if (newValue.equals("exit")) {
                                 break;
                             }
 
-                            // Parse integer
+                            // Try to Update the property
                             try {
-                                userRating = Integer.parseInt(input);
-
-                                if (userRating < 0 || userRating > 10) {
-                                    System.out.println("Invalid album rating! Album rating must be an integer between 0 and 10.");
-                                    continue;
-                                }
-                            } catch (NumberFormatException e) {
-                                System.out.println("Invalid album rating! Album rating must be an integer between 0 and 10.");
+                                Main.updateAlbum(idToModify, Main.AlbumProperty.id, newValue);
+                            } catch (Exception e) {
+                                System.out.println(e.getMessage());
                                 continue;
                             }
-
-                            albumToModify.setUserRating(userRating);
                             break;
                         }
                         break;
@@ -231,28 +212,21 @@ public class UpdateAlbum {
                         while (true) {
                             System.out.println("Enter album track count or 'exit' to exit:");
 
-                            input = scanner.nextLine().trim();
-                            if (input.isEmpty()) {
+                            newValue = scanner.nextLine().trim();
+                            if (newValue.isEmpty()) {
                                 // Restart loop if input is null/whitespace
                                 continue;
-                            } else if (input.equals("exit")) {
+                            } else if (newValue.equals("exit")) {
                                 break;
                             }
 
-                            // Parse integer
+                            // Try to Update the property
                             try {
-                                trackCount = Integer.parseInt(input);
-
-                                if (trackCount < 0) {
-                                    System.out.println("Invalid track count! Track count must be a positive integer.");
-                                    continue;
-                                }
-                            } catch (NumberFormatException e) {
-                                System.out.println("Invalid track count! Track count must be a positive integer.");
+                                Main.updateAlbum(idToModify, Main.AlbumProperty.id, newValue);
+                            } catch (Exception e) {
+                                System.out.println(e.getMessage());
                                 continue;
                             }
-
-                            albumToModify.setTrackCount(trackCount);
                             break;
                         }
                         break;
@@ -261,27 +235,20 @@ public class UpdateAlbum {
                         while (true) {
                             System.out.println("Enter album runtime in seconds or 'exit' to exit:");
 
-                            input = scanner.nextLine().trim();
-                            if (input.isEmpty()) {
+                            newValue = scanner.nextLine().trim();
+                            if (newValue.isEmpty()) {
                                 continue;
-                            } else if (input.equals("exit")) {
+                            } else if (newValue.equals("exit")) {
                                 break;
                             }
 
-                            // Parse integer
+                            // Try to Update the property
                             try {
-                                runtime = Integer.parseInt(input);
-
-                                if (runtime < 0) {
-                                    System.out.println("Invalid runtime! Runtime count must be a positive integer.");
-                                    continue;
-                                }
-                            } catch (NumberFormatException e) {
-                                System.out.println("Invalid runtime! Runtime count must be a positive integer.");
+                                Main.updateAlbum(idToModify, Main.AlbumProperty.id, newValue);
+                            } catch (Exception e) {
+                                System.out.println(e.getMessage());
                                 continue;
                             }
-
-                            albumToModify.setRuntime(runtime);
                             break;
                         }
                         break;

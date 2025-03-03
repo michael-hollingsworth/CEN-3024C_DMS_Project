@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.Scanner;
 
 public class TxtImporter {
+
+    private static Scanner scanner = new Scanner(System.in);
+
     // Name: run
     // Description: This method creates the submenu for the text file importing feature.
                  // This method contains the logic necessary for creating the File object that is passed to the Import() method.
@@ -20,7 +23,7 @@ public class TxtImporter {
         // List<Album> albums: The list of albums that is passed through for processing
     // Outputs:
         // List<Album>: The updated list of albums after the album(s) have been imported.
-    public static List<Album> run(Scanner scanner, List<Album> albums) {
+    public static void run() {
         while (true) {
             System.out.println("Enter full path to text file or [exit] to exit:");
 
@@ -29,7 +32,7 @@ public class TxtImporter {
                 // Restart loop if the input is blank
                 continue;
             } else if (input.equals("exit")) {
-                return albums;
+                return;
             }
 
             // Remove leading and trailing quotes
@@ -47,8 +50,7 @@ public class TxtImporter {
             }
 
             try {
-                List<Album> importedAlbums = Import(txtFile);
-                albums.addAll(importedAlbums);
+                Import(txtFile);
             } catch (FileNotFoundException e) {
                 System.out.println("File path [" + input + "] could not be found.\n");
             }
@@ -62,10 +64,8 @@ public class TxtImporter {
                       // This object is passed to a scanner to parse the file's contents
     // Outputs:
         // List<Album>: The list of albums imported from the text file. These albums will be added to the internal db by the run() method
-    public static List<Album> Import(File txtFile) throws FileNotFoundException {
+    public static void Import(File txtFile) throws FileNotFoundException {
         Scanner txtScanner = new Scanner(txtFile);
-
-        List<Album> albums = new ArrayList<Album>();
         Album album;
 
         while (txtScanner.hasNextLine()) {
@@ -90,7 +90,7 @@ public class TxtImporter {
             int runtime = Integer.parseInt(values[6]);
 
             // Validate that ID isn't already in use
-            if (Main.isAlbumIdUsed(albums, id)) {
+            if (Main.isAlbumIdUsed(id)) {
                 System.out.println("An album with the ID [" + id + "] already exists!");
                 continue;
             }
@@ -103,13 +103,11 @@ public class TxtImporter {
                 continue;
             }
 
+            // Import album to DB
             System.out.println("Importing album [" + album.toString() + "].");
-            albums.add(new Album(id, name, artistName, genre, userRating, trackCount, runtime));
+            Main.addAlbumToDB(new Album(id, name, artistName, genre, userRating, trackCount, runtime));
         }
 
         txtScanner.close();
-
-        // Return album list ("internal db") to previous context
-        return albums;
     }
 }

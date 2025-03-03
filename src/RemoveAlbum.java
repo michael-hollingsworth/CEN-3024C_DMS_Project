@@ -16,15 +16,16 @@ public class RemoveAlbum {
         // List<Album> albums: The list of albums that is passed through for processing
     // Outputs:
         // List<Album>: The updated list of albums after the album(s) have been removed.
-    public static List<Album> run(Scanner scanner, List<Album> albums) {
+
+    private static Scanner scanner = new Scanner(System.in);
+
+    public static void run() {
         while (true) {
             int idToRemove;
             int index = -1;
 
             // Options
-            for (Album album : albums) {
-                System.out.println(album.toString());
-            }
+            Main.printAlbums();
             System.out.println();
             System.out.println("Enter the ID of the album you want to remove or [exit] to exit:");
 
@@ -34,7 +35,7 @@ public class RemoveAlbum {
                 continue;
             } else if (input.equals("exit")) {
                 // Return album list ("internal db") to previous context
-                return albums;
+                return;
             }
 
             // Parse integer
@@ -50,26 +51,17 @@ public class RemoveAlbum {
                 continue;
             }
 
-            // Check if an album contains the ID provided
-            for (Album album : albums) {
-                if (album.id == idToRemove) {
-                    System.out.println("Removing album [" + album.toString() + "].");
-                    index = albums.indexOf(album);
-                    
-                }
-            }
+            // Get the album object that should be removed from its ID
+            Album albumToRemove = Main.getAlbumById(idToRemove);
 
-            // Verify that the object exists; if index is -1, the object doesn't exist in the db
-            if (index == -1) {
+            // Verify that the album exists within the internal DB
+            if (albumToRemove == null) {
                 System.out.println("Invalid option! Select one of the following options:");
-                for (Album album : albums) {
-                    System.out.println(album.toString());
-                }
                 continue;
             }
 
-            // Remove album from internal db
-            albums.remove(index);
+            // Remove the album
+            Main.removeAlbumFromDB(albumToRemove);
         }
     }
 }
