@@ -14,8 +14,10 @@ import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.*;
 
 public class Main {
     // Name: main
@@ -27,9 +29,25 @@ public class Main {
     // Internal DB
     public static List<Album> albums = new ArrayList<Album>();
 
-    private static TableModel model;
+    // External DB
+    public static File dbFile;
+
+    private static DefaultTableModel model;
+
+    public static AlbumsDB db = new AlbumsDB();
 
     public static void main(String[] args) {
+        // Open the JFileChooser first to select the SQLite DB file
+        dbFile = selectFile();
+
+        // If no file is selected or an error occurs, exit
+        if (dbFile == null) {
+            System.out.println("No database file selected, exiting.");
+            System.exit(0);
+        }
+
+
+
         JFrame frame = new JFrame("Music DMS");
         JTextField searchBar;
         JLabel searchLbl;
@@ -79,7 +97,6 @@ public class Main {
                 int albumId = (int) model.getValueAt(selectedRow, 0);
                 Album album = getAlbumById(albumId);
                 new EditWindow(album);  // Open the Edit Window
-                //new ModifyAlbum().createAndShowGUI(albumId);
             }
         });
 
@@ -89,7 +106,6 @@ public class Main {
             public void mousePressed(MouseEvent e) {
                 showPopupMenu(e);
             }
-
             @Override
             public void mouseReleased(MouseEvent e) {
                 showPopupMenu(e);
@@ -130,7 +146,7 @@ public class Main {
             }
 
             private void search(String str) {
-                if (str.length() == 0) {
+                if (str.isEmpty()) {
                     sorter.setRowFilter(null);
                 } else {
                     sorter.setRowFilter(RowFilter.regexFilter(str));
@@ -144,6 +160,8 @@ public class Main {
         frame.setLocationRelativeTo(null);
         frame.setResizable(true);
         frame.setVisible(true);
+
+        updateTable();
     }
 
     // Method to update the table with the latest list of albums
@@ -152,16 +170,42 @@ public class Main {
     // Inputs: none
     // Outputs: none
     public static void updateTable() {
-        // Clear the existing rows
-        DefaultTableModel defaultModel = (DefaultTableModel) model;
-        defaultModel.setRowCount(0);
+        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbFile.getAbsolutePath())) {
+            try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery("SELECT * FROM Albums")) {
+                // Clear any existing data in the table model
+                model.setRowCount(0);
 
-        // Add rows for each album in the internal DB
-        for (Album album : albums) {
-            Object[] row = {album.getId(), album.getName(), album.getArtistName(),
-                    album.getGenre(), album.getUserRating(), album.getTrackCount(), album.getRuntimeString()};
-            defaultModel.addRow(row);
+                // Add data to the table
+                while (rs.next()) {
+                    Object[] row = {
+                            rs.getInt("Id"),
+                            rs.getString("Name"),
+                            rs.getString("ArtistName"),
+                            rs.getString("Genre"),
+                            rs.getInt("UserRating"),
+                            rs.getInt("TrackCount"),
+                            convertIntToRuntimeString(rs.getInt("Runtime"))
+                    };
+                    model.addRow(row);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+    }
+
+    // Name: convertIntToRuntimeString
+    // Description: Converts a runtime value in seconds to a human-readable timespan
+    // Inputs:
+        // int runtime: integer to convert
+    // Outputs:
+        // String: Human-readable representation of the integer runtime
+    public static String convertIntToRuntimeString(int runtime) {
+        int hours = runtime / 3600;
+        int minutes = (runtime / 60) % 60;
+        int seconds = runtime % 60;
+
+        return (hours + ":" + minutes + ":" + seconds);
     }
 
     // Name: isAlbumIdUsed
@@ -173,13 +217,11 @@ public class Main {
     // Outputs:
         // boolean: true if the id is in use and false if the id is not in use.
     public static boolean isAlbumIdUsed(int id) {
-        for (Album album : albums) {
-            if (album.getId() == id) {
-                return true;
-            }
+        if ((Main.db.getExecuteResult("SELECT * FROM " + AlbumsDB.TABLE_NAME + " WHERE Id = " + id)).isEmpty()) {
+            return false;
         }
 
-        return false;
+        return true;
     }
 
     // Name: getAlbumById
@@ -190,13 +232,24 @@ public class Main {
         // Album: The album with a matching ID
         // null: If no album has the ID provided, null is returned
     public static Album getAlbumById(int id) {
-        for (Album album : albums) {
-            if (album.getId() == id) {
-                return album;
-            }
+        ArrayList<ArrayList<Object>> data = new ArrayList<ArrayList<Object>>();
+
+        data = Main.db.getExecuteResult("SELECT * FROM " + AlbumsDB.TABLE_NAME + " WHERE Id = " + id);
+
+        if (data.isEmpty()) {
+            return null;
         }
 
-        return null;
+        Album album = new Album(
+            (int) data.get(0).get(0),
+            (String) data.get(0).get(1),
+            (String) data.get(0).get(2),
+            (String) data.get(0).get(3),
+            (int) data.get(0).get(4),
+            (int) data.get(0).get(5),
+            (int) data.get(0).get(6)
+        );
+        return album;
     }
 
     // Name: addAlbumToDB
@@ -205,7 +258,7 @@ public class Main {
         // Album album: The album that will be added to the DB.
     // Outputs: none
     public static void addAlbumToDB(Album album) {
-        albums.add(album);
+        db.insert(album);
         updateTable();
     }
 
@@ -215,23 +268,7 @@ public class Main {
         // Album album: The album that will be removed from the DB.
     // Outputs: none
     public static void removeAlbumFromDB(Album albumToRemove) {
-        int index = -1;
-
-        // Check if an album contains the ID provided
-        for (Album album : albums) {
-            if (album.id == albumToRemove.id) {
-                System.out.println("Removing album [" + album.toString() + "].");
-                index = albums.indexOf(album);
-                break;
-            }
-        }
-
-        // Verify that the object exists; if index is -1, the object doesn't exist in the db
-        if (index == -1) {
-            return;
-        }
-
-        albums.remove(index);
+        db.delete(AlbumsDB.COLUMN_ID, Integer.toString(albumToRemove.id));
     }
 
     // Name: updateAlbum
@@ -256,42 +293,14 @@ public class Main {
         }
 
         switch (property) {
-            case id:
-                int newID;
-
-                // Parse integer
-                try {
-                    newID = Integer.parseInt(newValue);
-                } catch (NumberFormatException e) {
-                    throw new IllegalArgumentException("Invalid album ID! Album ID must be a positive integer.");
-                }
-
-                // Verify that the album ID is valid
-                if (newID < 0) {
-                    throw new IllegalArgumentException("Invalid album ID! Album ID must be a positive integer.");
-                }
-
-                // Verify that album ID isn't currently being used
-                if (isAlbumIdUsed(newID)) {
-                    if (albumToModify.id == newID) {
-                        // If they are setting the ID to the current ID, it isn't an issue, we will just not do anything
-                        return;
-                    }
-                    throw new IllegalArgumentException("A album with the ID [" + newID + "] already exists!");
-                }
-
-                // Update album ID property
-                albumToModify.setId(newID);
-
-                return;
             case name:
                 // Validate that the name isn't null/whitespace
                 if (newValue.isEmpty()) {
                     throw new IllegalArgumentException("Name cannot be empty!");
                 }
 
-                // Update album name property
-                albumToModify.setName(newValue);
+                // Update the album name property
+                db.update("Name", newValue, "Id", Integer.toString(albumId));
                 return;
             case artistName:
                 // Validate that the artist name isn't null/whitespace
@@ -300,8 +309,7 @@ public class Main {
                 }
 
                 // Update artist name property
-                albumToModify.setArtistName(newValue);
-
+                db.update("ArtistName", newValue, "Id", Integer.toString(albumId));
                 return;
             case genre:
                 // Validate that the genre isn't null/whitespace
@@ -310,8 +318,7 @@ public class Main {
                 }
 
                 // Update genre property
-                albumToModify.setGenre(newValue);
-
+                db.update("Genre", newValue, "Id", Integer.toString(albumId));
                 return;
             case userRating:
                 int newUserRating;
@@ -329,7 +336,7 @@ public class Main {
                 }
 
                 // Update user rating property
-                albumToModify.setUserRating(newUserRating);
+                db.update("UserRating", Integer.toString(newUserRating), "Id", Integer.toString(albumId));
                 return;
             case trackCount:
                 int newTrackCount;
@@ -347,7 +354,7 @@ public class Main {
                 }
 
                 // Update track count property
-                albumToModify.setTrackCount(newTrackCount);
+                db.update("TrackCount", Integer.toString(newTrackCount), "Id", Integer.toString(albumId));
                 return;
             case runtime:
                 int newRuntime;
@@ -365,7 +372,7 @@ public class Main {
                 }
 
                 // Update runtime property
-                albumToModify.setRuntime(newRuntime);
+                db.update("Runtime", Integer.toString(newRuntime), "Id", Integer.toString(albumId));
         }
     }
 
@@ -430,18 +437,34 @@ public class Main {
             JButton cancelButton = new JButton("Cancel");
             saveButton.addActionListener(e -> {
                 try {
-                    albumToEdit.setName(nameField.getText());
-                    albumToEdit.setArtistName(artistField.getText());
-                    albumToEdit.setGenre(genreField.getText());
-                    albumToEdit.setUserRating(Integer.parseInt(ratingField.getText()));
-                    albumToEdit.setTrackCount(Integer.parseInt(trackCountField.getText()));
-                    albumToEdit.setRuntime(Integer.parseInt(runtimeField.getText()));
+                    if (album.name != nameField.getText()) {
+                        updateAlbum(album.id, AlbumProperty.name, nameField.getText());
+                    }
+                    if (album.artistName != artistField.getText()) {
+                        updateAlbum(album.id, AlbumProperty.artistName, artistField.getText());
+                    }
+                    if (album.genre != genreField.getText()) {
+                        updateAlbum(album.id, AlbumProperty.genre, genreField.getText());
+                    }
+                    if (album.userRating != Integer.parseInt(ratingField.getText())) {
+                        updateAlbum(album.id, AlbumProperty.userRating, ratingField.getText());
+                    }
+                    if (album.trackCount != Integer.parseInt(trackCountField.getText())) {
+                        updateAlbum(album.id, AlbumProperty.trackCount, trackCountField.getText());
+                    }
+                    if (album.trackCount != Integer.parseInt(runtimeField.getText())) {
+                        updateAlbum(album.id, AlbumProperty.trackCount, runtimeField.getText());
+                    }
 
                     // Update the table and close the window
                     updateTable();
                     frame.dispose();  // Close the edit window
                 } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(frame, "Please enter valid numbers for Rating, Track Count, and Runtime.");
+                    JOptionPane.showMessageDialog(null, ex.getMessage());
+                } catch (IllegalArgumentException ex) {
+                    JOptionPane.showMessageDialog(null, ex.getMessage());
+                } catch (NullPointerException ex) {
+                    JOptionPane.showMessageDialog(null, ex.getMessage());
                 }
             });
 
@@ -459,5 +482,22 @@ public class Main {
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
         }
+    }
+
+    // Name: selectFile
+    // Description: Opens a JFileChooser for the user to select a file
+    // Inputs: none
+    // Outputs:
+        // File: The file selected by the user
+        // null: if the user closes the JFileChooser without selecting a file
+    private static File selectFile() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Select SQLite Database File");
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("SQLite DB Files", "db", "sqlite"));
+        int result = fileChooser.showOpenDialog(null);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            return fileChooser.getSelectedFile();
+        }
+        return null; // Return null if no file was selected
     }
 }
