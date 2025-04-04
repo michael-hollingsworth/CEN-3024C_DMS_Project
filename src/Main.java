@@ -19,6 +19,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.sql.*;
 
+/**
+ * This is a DMS application used to keep track of the albums an individual has listened to along with their associated ratings.
+ */
 public class Main {
     // Name: main
     // Description: Main method for running the program
@@ -36,6 +39,10 @@ public class Main {
 
     public static AlbumsDB db = new AlbumsDB();
 
+    /**
+     * The main method for running the application
+     * @param args An array of String values that are passed to the application. This application does not contain any start parameters.
+     */
     public static void main(String[] args) {
         // Open the JFileChooser first to select the SQLite DB file
         dbFile = selectFile();
@@ -164,11 +171,14 @@ public class Main {
         updateTable();
     }
 
-    // Method to update the table with the latest list of albums
     // Name: updateTable
-    // Description: Updates the table in the main window after making changes to the internal DB.
+    // Description: Updates the table in the main window after making changes to the DB.
     // Inputs: none
     // Outputs: none
+
+    /**
+     * Method used to update the main application table after making changes to the DB
+     */
     public static void updateTable() {
         try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbFile.getAbsolutePath())) {
             try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery("SELECT * FROM Albums")) {
@@ -200,6 +210,14 @@ public class Main {
         // int runtime: integer to convert
     // Outputs:
         // String: Human-readable representation of the integer runtime
+
+    /**
+     * convertIntoToRuntimeString() used to convert an album's runtime in seconds to a human-readable format (HH:MM:SS)
+     * Example: convertIntToRuntimeString(1264)
+     * Output: 21:04
+     * @param runtime An integer representing the number of seconds in the runtime. This is the value that will be converted to a human-readable time format
+     * @return A String representing the runtime in the format of HH:MM:SS
+     */
     public static String convertIntToRuntimeString(int runtime) {
         int hours = runtime / 3600;
         int minutes = (runtime / 60) % 60;
@@ -216,6 +234,12 @@ public class Main {
         // int id: The album id that will be checked.
     // Outputs:
         // boolean: true if the id is in use and false if the id is not in use.
+
+    /**
+     * isAlbumIdUsed queries the DB to check if an album ID is already in use.
+     * @param id The integer album ID to check.
+     * @return A Boolean where True means that the album ID is already used and False means that it isn't.
+     */
     public static boolean isAlbumIdUsed(int id) {
         if ((Main.db.getExecuteResult("SELECT * FROM " + AlbumsDB.TABLE_NAME + " WHERE Id = " + id)).isEmpty()) {
             return false;
@@ -231,6 +255,12 @@ public class Main {
     // Outputs:
         // Album: The album with a matching ID
         // null: If no album has the ID provided, null is returned
+
+    /**
+     * getAlbumById searches the DB for an album based on the ID provided. If the ID exists in the DB, an Album object of the album with the matching ID is returned.
+     * @param id The integer album ID to search for.
+     * @return An Album object is returned containing information pertaining to the album.
+     */
     public static Album getAlbumById(int id) {
         ArrayList<ArrayList<Object>> data = new ArrayList<ArrayList<Object>>();
 
@@ -257,6 +287,11 @@ public class Main {
     // Inputs:
         // Album album: The album that will be added to the DB.
     // Outputs: none
+
+    /**
+     * addAlbumToDB takes an Album object and adds it to the DB to be displayed in the main application table
+     * @param album The Album object that should be added to the DB
+     */
     public static void addAlbumToDB(Album album) {
         db.insert(album);
         updateTable();
@@ -267,6 +302,11 @@ public class Main {
     // Inputs:
         // Album album: The album that will be removed from the DB.
     // Outputs: none
+
+    /**
+     * removeAlbumFromDB removes an album from the DB and updates the main application table.
+     * @param albumToRemove The Album object that should be removed from the DB.
+     */
     public static void removeAlbumFromDB(Album albumToRemove) {
         db.delete(AlbumsDB.COLUMN_ID, Integer.toString(albumToRemove.id));
     }
@@ -274,10 +314,17 @@ public class Main {
     // Name: updateAlbum
     // Description: Updates a property for an album within the DB
     // Inputs:
-    // int albumId: The album that will be removed from the DB.
-    // AlbumProperty: Enum representing the property that will be modified
-    // String newValue: The updated value. This value will be converted to the correct type based on the AlbumProperty
+        // int albumId: The album that will be removed from the DB.
+        // AlbumProperty: Enum representing the property that will be modified
+        // String newValue: The updated value. This value will be converted to the correct type based on the AlbumProperty
     // Outputs: none
+
+    /**
+     * updateAlbum is an internal function used to update the properties of an album within the DB.
+     * @param albumId The integer ID of the album that should be updated.
+     * @param property An AlbumProperty enum value that represents which property should be updated.
+     * @param newValue A String of the updated value.
+     */
     public static void updateAlbum(int albumId, AlbumProperty property, String newValue) {
         Album albumToModify;
         int index = -1;
@@ -378,6 +425,10 @@ public class Main {
 
     // Enum of the properties in an album object
     // Used in updateAlbum() method
+
+    /**
+     * An enum used to select which property should be selected/updated in the updateAlbum() method.
+     */
     public enum AlbumProperty {
         id,
         name,
@@ -389,7 +440,9 @@ public class Main {
     }
 
 
-    // Edit Window Class
+    /**
+     * This class contains the logic used to create the album editing window which is displayed when right-clicking on an album on the main table and selecting the edit option.
+     */
     public static class EditWindow {
         private JFrame frame;
         private JTextField nameField, artistField, genreField, ratingField, trackCountField, runtimeField;
@@ -400,6 +453,11 @@ public class Main {
         // Inputs:
             // Album album: The album that will be modified from the DB.
         // Outputs: none
+
+        /**
+         * This method contains the logic used to create the album editing window which is displayed when right-clicking on an album on the main table and selecting the edit option.
+         * @param album The album object that will be edited in the edit window. The properties of this album will be used to autopopulate fields in the edit window.
+         */
         public EditWindow(Album album) {
             this.albumToEdit = album;
 
@@ -490,6 +548,11 @@ public class Main {
     // Outputs:
         // File: The file selected by the user
         // null: if the user closes the JFileChooser without selecting a file
+
+    /**
+     * A simple method used to create a file selection dialog box.
+     * @return - A File object representing the file selected by the user. If the user doesn't select a file and instead exits the window, null is returned.
+     */
     private static File selectFile() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Select SQLite Database File");

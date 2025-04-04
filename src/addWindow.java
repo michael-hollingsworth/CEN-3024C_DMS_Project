@@ -10,11 +10,18 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * This class contains the methods and logic used to manually add albums to the DB and display the GUI for adding/importing albums.
+ */
 public class addWindow {
     // Name: run
     // Description: static method to run the createAndShowGUI method
     // Inputs: none
     // Outputs: none
+
+    /**
+     * A static helper method used to invoke the non-static method which displays the GUI window for adding/importing albums to the DMS.
+     */
     public static void run() {
         SwingUtilities.invokeLater(() -> new addWindow().createAndShowGUI());
     }
@@ -23,6 +30,10 @@ public class addWindow {
     // Description: Creates the GUI used to add and albums to DMS
     // Inputs: none
     // Outputs: none
+
+    /**
+     * This is the non-static method that creates and displays the GUI elements for adding/importing an album to the DB.
+     */
     public void createAndShowGUI() {
         // Create the frame
         JFrame frame = new JFrame("Add Album");
@@ -148,6 +159,15 @@ public class addWindow {
         // int gridy: Y coordinate of the position where the object should go
         // GridBagConstraints gbc: constraint to use when adding the component to the panel
     // Outputs: none
+
+    /**
+     * A helper method used to add components to the JPanel.
+     * @param panel This is the JPanel that a component will be added to.
+     * @param comp This is the Component that will be added to the JPanel.
+     * @param gridx This is an integer representing the X coordinate position where the component will be placed on the JPanel.
+     * @param gridy This is an integer representing the Y coordinate position where the component will be placed on the JPanel.
+     * @param gbc This is the GridBagConstraints used to offset the X and Y coordinates.
+     */
     private void addComponent(JPanel panel, Component comp, int gridx, int gridy, GridBagConstraints gbc) {
         gbc.gridx = gridx;
         gbc.gridy = gridy;
@@ -167,6 +187,19 @@ public class addWindow {
         // JTextField runtimeField: runtime field to get contents and modify if need be
     // Outputs:
         // Boolean: true or false if the object was successfully created
+
+    /**
+     * This method is used to validate that the information entered into the import album fields is valid. If one of the fields is invalid, it will be highlighted red and an error popup will appear letting the user know that the field needs to be corrected.
+     * @param frame This is the JFrame that the fields are located on. This will be passed to the showMessageDialog() method to create an error popup.
+     * @param albumIdField This is the album ID text field from the GUI.
+     * @param albumNameField This is the album name text field from the GUI.
+     * @param artistNameField This is the artist name text field from the GUI.
+     * @param genreField This is the genre text field from the GUI.
+     * @param ratingField This is the rating text field from the GUI.
+     * @param trackCountField This is the track count text field from the GUI.
+     * @param runtimeField This is the runtime text field from the GUI.
+     * @return A boolean value where True means that the album information was valid and the album was saved. False means one or more of the fields provided was improperly formatted.
+     */
     public boolean validateAndSaveAlbum(JFrame frame, JTextField albumIdField, JTextField albumNameField,
                                         JTextField artistNameField, JTextField genreField, JTextField ratingField,
                                         JTextField trackCountField, JTextField runtimeField) {
@@ -243,6 +276,11 @@ public class addWindow {
     // Inputs:
         // JTextField field: the field to highlight
     // Outputs: none
+
+    /**
+     * This is a simple method used to highlight a JTextField red/pink. This method is used in the validateAndSaveAlbum() method to show the user which text field needs to be fixed.
+     * @param field The JTextField that should be highlighted red/pink
+     */
     private void highlightField(JTextField field) {
         field.setBackground(Color.PINK);  // Change background to pink
     }
@@ -252,6 +290,11 @@ public class addWindow {
         // Inputs: JTextField fields
     // JTextField field: the field to reset to white
     // Outputs: none
+
+    /**
+     * This helper method is used to reset the highlighting on a JTextField for when album information is properly formatted. This method is used in the validateAndSaveAlbum() method
+     * @param fields The JTextFields that need to have their highlighting reset.
+     */
     private void resetFieldBackgrounds(JTextField... fields) {
         for (JTextField field : fields) {
             field.setBackground(Color.WHITE);  // Reset background to white
@@ -264,6 +307,12 @@ public class addWindow {
         // String str: the string to validate if it is a positive integer
     // Outputs:
         // boolean: true if it is a positive integer false if not
+
+    /**
+     * This is a basic helper method used to check if an integer is positive
+     * @param str This is the String pulled straight from the JTextField.
+     * @return A Boolean where True means the String represents a positive integer. False means the String represents a negative integer or doesn't represent an integer at all.
+     */
     private boolean isPositiveInteger(String str) {
         try {
             int value = Integer.parseInt(str);
@@ -279,6 +328,12 @@ public class addWindow {
         // String str: the string to validate if it is empty
     // Outputs:
         // boolean: true if it is a non-empty string false if not
+
+    /**
+     * This is a helper method to verify that the String data in a JTextField isn't empty or whitespace.
+     * @param str The String to validate.
+     * @return A Boolean value where true means the string is not empty or whitespace. False means the String is empty or only contains whitespace characters.
+     */
     private boolean isNonEmptyString(String str) {
         return str != null && !str.trim().isEmpty();
     }
@@ -289,6 +344,12 @@ public class addWindow {
         // String str: the string to validate if it is a valid rating
     // Outputs:
         // boolean: true if it is a valid rating false if not
+
+    /**
+     * A helper method used to verify that the String data in a JTextField is a valid album rating, between 0 and 10.
+     * @param rating  The String to validate.
+     * @return A Boolean value where true means the String represents an integer between 0 and 10. False means the String does not represent an integer between 0 and 10.
+     */
     private boolean isValidRating(String rating) {
         try {
             int value = Integer.parseInt(rating);

@@ -9,6 +9,9 @@ import javax.swing.table.DefaultTableModel;
 import java.sql.*;
 import java.util.ArrayList;
 
+/**
+ * The DBHelper class contains a few basic methods used to connect to and interact with a SQLite database
+ */
 public class DBHelper {
     private Connection connection;
     private Statement statement;
@@ -18,6 +21,10 @@ public class DBHelper {
     // Description: Instantiator for class
     // Inputs: none
     // Outputs: none
+
+    /**
+     * An instantiator for the DBHelper class
+     */
     public DBHelper() {
         connection = null;
         statement = null;
@@ -28,6 +35,10 @@ public class DBHelper {
     // Description: Connect to the SQLite DB selected at the start of the application
     // Inputs: none
     // Outputs: none
+
+    /**
+     * The connect() method is used to connect to the database. This method connects to the DB file selected by the user at the start of the application.
+     */
     private void connect() {
         try {
             Class.forName("org.sqlite.JDBC");
@@ -48,6 +59,10 @@ public class DBHelper {
     // Description: Close the connection to the SQLite DB
     // Inputs: none
     // Outputs: none
+
+    /**
+     * The close() method is used to close any active DB connections and cleanup memory.
+     */
     private void close() {
         try {
             if (connection != null) connection.close();
@@ -64,6 +79,12 @@ public class DBHelper {
         // ArrayList<ArrayList<Object>> list: 2D ArrayList that will be converted to a 2D Array
     // Outputs:
         // Object[][]: 2D Array representation of the 2D Arraylist input
+
+    /**
+     * arrayListTo2DArray converts a 2D ArrayList to a 2D Array.
+     * @param list The 2D ArrayList that you would like to convert to a 2D array.
+     * @return A 2D Object Array representing the data input.
+     */
     private Object[][] arrayListTo2DArray(ArrayList<ArrayList<Object>> list) {
         Object[][] array = new Object[list.size()][];
         for (int i = 0; i < list.size(); i++) {
@@ -78,6 +99,11 @@ public class DBHelper {
     // Inputs:
         // String sql: SQL query to execute
     // Outputs: none
+
+    /**
+     * The execute() method is used to execute a SQL statement. The statement can be any type of statement but it will not return any data.
+     * @param sql The String form of the SQL statement that you are attempting to execute.
+     */
     protected void execute(String sql) {
         try {
             connect();
@@ -90,6 +116,18 @@ public class DBHelper {
         }
     }
 
+    // Name: executeQueryToTable
+    // Description: Executes a SQL query and returns a DefaultTableModel representing the data
+    // Inputs:
+        // String sql: SQL query to execute
+    // Outputs:
+        // DefaultTableModel: Table with the information returned from the query
+
+    /**
+     * The executeQueryToTable() method executes a SQL query and outputs a DefaultTableModel object with the data returned.
+     * @param sql The String form of the SQL query that you are attempting to search.
+     * @return A DefaultTableModel representing the data returned form the SQL query.
+     */
     protected DefaultTableModel executeQueryToTable(String sql) {
         ArrayList<ArrayList<Object>> result = new ArrayList<ArrayList<Object>>();
         ArrayList<Object> columns = new ArrayList<Object>();
@@ -112,6 +150,18 @@ public class DBHelper {
         return new DefaultTableModel(arrayListTo2DArray(result), columns.toArray());
     }
 
+    // Name: executeQuery
+    // Description: Executes a SQL query and returns a 2D ArrayList representing the data
+    // Inputs:
+        // String sql: SQL query to execute
+    // Outputs:
+        // ArrayList<ArrayList<Object>>: 2D ArrayList with the information returned from the query
+
+    /**
+     * executeQuery is used to execute a SQL SELECT query and return a 2D ArrayList of the data returned by the SQL query.
+     * @param sql The String form of the SQL query that you are attempting to search.
+     * @return A 2D ArrayList representing the data returned form the SQL query.
+     */
     protected ArrayList<ArrayList<Object>> executeQuery(String sql) {
         ArrayList<ArrayList<Object>> result = new ArrayList<ArrayList<Object>>();
         connect();

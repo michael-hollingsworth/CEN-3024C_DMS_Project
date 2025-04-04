@@ -11,6 +11,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 
+/**
+ * This class is used to import one or more text albums from a text file
+ */
 public class TxtImporter {
     // Name: Import
     // Description: Method contains the logic necessary to import albums from a text file
@@ -19,6 +22,12 @@ public class TxtImporter {
                       // This object is passed to a scanner to parse the file's contents
     // Outputs:
         // List<Album>: The list of albums imported from the text file. These albums will be added to the internal db by the run() method
+
+    /**
+     * This is the primary method used to parse a text file for Album strings. This method will then convert the strings into Album objects and import them to the DB
+     * @param txtFile A File object of the text file you are attempting to import albums from
+     * @throws FileNotFoundException When the file passed to this method does not exist or cannot be found, a FileNotFoundException is thrown.
+     */
     public static void Import(File txtFile) throws FileNotFoundException {
         Album album;
 
